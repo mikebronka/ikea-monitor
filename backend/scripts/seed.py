@@ -11,9 +11,11 @@ from sqlalchemy import select
 from app.config import settings
 from app.database import async_session, engine, Base
 from app.domain.products.models import Product
+from app.domain.prices.models import PriceRecord, PriceChange, TagChange
+from app.domain.lists.models import ShoppingList, ListProduct
 
 
-PRODUCTS_JSON = Path(__file__).parent.parent.parent.parent / "ikea" / "products.json"
+PRODUCTS_JSON = Path(__file__).parent.parent / "data" / "products.json"
 
 
 async def seed():

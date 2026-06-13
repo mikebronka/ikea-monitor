@@ -33,6 +33,10 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/app:/code/app
+      - ./backend/alembic:/code/alembic
+      - ./backend/alembic.ini:/code/alembic.ini
+      - ./backend/scripts:/code/scripts
+      - ./data:/code/data
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:

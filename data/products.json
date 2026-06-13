@@ -1,0 +1,214 @@
+{
+  "products": {
+    "305.729.84": {
+      "name": "FORSNÄS lodówka IKEA 700 zintegrowana, 310 l",
+      "ref_price": 2399.00,
+      "priority": "high",
+      "category": "agd"
+    },
+    "405.967.53": {
+      "name": "METOD narożna szafka stojąca, biały, 128x80x80 cm",
+      "ref_price": 285.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "405.967.48": {
+      "name": "METOD narożna szafka stojąca, biały, 88x60x80 cm",
+      "ref_price": 270.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "502.056.26": {
+      "name": "METOD szafka stojąca, biały, 60x60x80 cm",
+      "ref_price": 135.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "702.135.69": {
+      "name": "METOD szafka stojąca z zabudową, biały, 60x60x80 cm",
+      "ref_price": 160.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "802.134.32": {
+      "name": "METOD szafka stojąca, biały, 40x60x80 cm",
+      "ref_price": 115.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "902.135.68": {
+      "name": "METOD szafka wysoka na wbud. AGD, biały, 60x60x200 cm",
+      "ref_price": 390.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "602.125.65": {
+      "name": "METOD szafka wysoka, biały, 60x60x200 cm",
+      "ref_price": 350.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "402.055.37": {
+      "name": "METOD szafka ścienna z wentylacją, biały, 60x60x40 cm",
+      "ref_price": 130.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "702.055.26": {
+      "name": "METOD szafka ścienna, biały, 80x37x80 cm",
+      "ref_price": 125.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "302.055.28": {
+      "name": "METOD szafka ścienna, biały, 60x37x80 cm",
+      "ref_price": 115.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "305.476.40": {
+      "name": "METOD szafka wisząca na wbudowany okap, biały, 60x37x80 cm",
+      "ref_price": 255.00,
+      "priority": "high",
+      "category": "metod"
+    },
+    "605.917.02": {
+      "name": "METOD szafka stojąca, czarnoszary, 60x60x80 cm",
+      "ref_price": 155.00,
+      "priority": "normal",
+      "category": "metod"
+    },
+    "904.752.73": {
+      "name": "HAVSTORP drzwi, beżowy, 60x80 cm",
+      "ref_price": 108.00,
+      "priority": "high",
+      "category": "fronts"
+    },
+    "104.752.72": {
+      "name": "HAVSTORP drzwi, beżowy, 60x60 cm",
+      "ref_price": 90.00,
+      "priority": "high",
+      "category": "fronts"
+    },
+    "604.752.79": {
+      "name": "HAVSTORP front szuflady, beżowy, 60x20 cm",
+      "ref_price": 67.50,
+      "priority": "high",
+      "category": "fronts"
+    },
+    "404.752.80": {
+      "name": "HAVSTORP front szuflady, beżowy, 60x40 cm",
+      "ref_price": 76.50,
+      "priority": "high",
+      "category": "fronts"
+    },
+    "704.752.74": {
+      "name": "HAVSTORP drzwi 2 szt., beżowy, 25x80 cm",
+      "ref_price": 148.50,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "003.318.73": {
+      "name": "ASKERSUND front szuflady, imitacja jasnego jesionu, 60x40 cm",
+      "ref_price": 30.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "203.318.72": {
+      "name": "ASKERSUND front szuflady, imitacja jasnego jesionu, 60x20 cm",
+      "ref_price": 25.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "603.318.65": {
+      "name": "ASKERSUND drzwi, imitacja jasnego jesionu, 60x80 cm",
+      "ref_price": 50.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "903.575.47": {
+      "name": "ASKERSUND drzwi, imitacja jasnego jesionu, 60x200 cm",
+      "ref_price": 150.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "903.318.59": {
+      "name": "ASKERSUND drzwi, imitacja jasnego jesionu, 60x120 cm",
+      "ref_price": 120.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "303.318.57": {
+      "name": "ASKERSUND drzwi, imitacja jasnego jesionu, 40x80 cm",
+      "ref_price": 45.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "103.318.63": {
+      "name": "ASKERSUND drzwi, imitacja jasnego jesionu, 60x40 cm",
+      "ref_price": 35.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "105.266.34": {
+      "name": "HEJSTA drzwi szklane, antracyt/szkło ryflowane, 30x80 cm",
+      "ref_price": 170.00,
+      "priority": "normal",
+      "category": "fronts"
+    },
+    "202.046.28": {
+      "name": "MAXIMERA szuflada niska, biały, 60x60 cm",
+      "ref_price": 135.00,
+      "priority": "normal",
+      "category": "accessories"
+    },
+    "202.214.49": {
+      "name": "MAXIMERA szuflada średnia, biały, 60x60 cm",
+      "ref_price": 150.00,
+      "priority": "normal",
+      "category": "accessories"
+    },
+    "902.046.39": {
+      "name": "MAXIMERA szuflada wysoka, biały, 60x60 cm",
+      "ref_price": 180.00,
+      "priority": "normal",
+      "category": "accessories"
+    },
+    "205.967.87": {
+      "name": "UTRUSTA karuzela narożnej szafki stojącej, szary, 88 cm",
+      "ref_price": 300.00,
+      "priority": "high",
+      "category": "accessories"
+    },
+    "405.967.91": {
+      "name": "UTRUSTA wysuwane mocowanie narożnej szafki, szary, 128 cm",
+      "ref_price": 590.00,
+      "priority": "high",
+      "category": "accessories"
+    },
+    "805.568.73": {
+      "name": "SÄLJAN blat, biały/jasnoszary imitacja kamienia/laminat, 246x3.8 cm",
+      "ref_price": 349.00,
+      "priority": "high",
+      "category": "countertop"
+    },
+    "304.752.85": {
+      "name": "HAVSTORP panel maskujący, beżowy, 62x80 cm",
+      "ref_price": 112.50,
+      "priority": "normal",
+      "category": "panels"
+    },
+    "504.752.51": {
+      "name": "HAVSTORP panel maskujący, beżowy, 39x86 cm",
+      "ref_price": 103.50,
+      "priority": "normal",
+      "category": "panels"
+    },
+    "203.318.48": {
+      "name": "ASKERSUND panel maskujący, imitacja jasnego jesionu, 62x240 cm",
+      "ref_price": 230.00,
+      "priority": "normal",
+      "category": "panels"
+    }
+  }
+}
