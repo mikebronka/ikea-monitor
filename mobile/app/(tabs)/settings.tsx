@@ -1,11 +1,28 @@
-import { useQuery } from "@tanstack/react-query";
-import { StyleSheet, Text, View } from "react-native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { apiFetch } from "../../src/api/client";
+import type { ScraperStatus } from "../../src/types";
 
 export default function SettingsScreen() {
-  const { data } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { data: health } = useQuery({
     queryKey: ["health"],
     queryFn: () => apiFetch<{ status: string }>("/api/v1/health"),
+  });
+
+  const { data: scraper } = useQuery({
+    queryKey: ["scraperStatus"],
+    queryFn: () => apiFetch<ScraperStatus>("/api/v1/scraper/status"),
+    refetchInterval: 5000,
+  });
+
+  const triggerMutation = useMutation({
+    mutationFn: () => apiFetch("/api/v1/scraper/trigger", { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scraperStatus"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 
   return (
@@ -14,10 +31,49 @@ export default function SettingsScreen() {
         <Text style={styles.cardTitle}>Status API</Text>
         <View style={styles.row}>
           <Text style={styles.label}>Backend:</Text>
-          <Text style={[styles.value, data?.status === "ok" ? styles.ok : styles.err]}>
-            {data?.status ?? "Łączenie..."}
+          <Text style={[styles.value, health?.status === "ok" ? styles.ok : styles.err]}>
+            {health?.status ?? "Laczenie..."}
           </Text>
         </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Scraper</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Status:</Text>
+          <Text style={[styles.value, scraper?.is_running ? styles.running : styles.ok]}>
+            {scraper?.is_running ? "Dziala..." : "Gotowy"}
+          </Text>
+        </View>
+        {scraper?.last_run && (
+          <>
+            <View style={styles.row}>
+              <Text style={styles.label}>Ostatni run:</Text>
+              <Text style={styles.value}>
+                {new Date(scraper.last_run.finished_at).toLocaleString("pl")}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Sprawdzono:</Text>
+              <Text style={styles.value}>{scraper.last_run.checked} produktow</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Zmiany cen:</Text>
+              <Text style={styles.value}>{scraper.last_run.price_changes}</Text>
+            </View>
+          </>
+        )}
+        <Pressable
+          style={[styles.triggerButton, scraper?.is_running && styles.triggerDisabled]}
+          onPress={() => triggerMutation.mutate()}
+          disabled={scraper?.is_running || triggerMutation.isPending}
+        >
+          {triggerMutation.isPending || scraper?.is_running ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.triggerText}>Uruchom scraper</Text>
+          )}
+        </Pressable>
       </View>
 
       <View style={styles.card}>
@@ -32,7 +88,7 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      <Text style={styles.footer}>IKEA Price Monitor{"\n"}Projekt Deszczowa</Text>
+      <Text style={styles.footer}>IKEA Price Monitor</Text>
     </View>
   );
 }
@@ -56,5 +112,15 @@ const styles = StyleSheet.create({
   value: { fontWeight: "600", color: "#333" },
   ok: { color: "#27ae60" },
   err: { color: "#c0392b" },
-  footer: { textAlign: "center", color: "#bbb", marginTop: 40, lineHeight: 20 },
+  running: { color: "#e67e22" },
+  triggerButton: {
+    backgroundColor: "#0058a3",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  triggerDisabled: { opacity: 0.5 },
+  triggerText: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  footer: { textAlign: "center", color: "#bbb", marginTop: 40 },
 });

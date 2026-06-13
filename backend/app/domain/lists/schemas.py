@@ -16,6 +16,10 @@ class ListUpdate(BaseModel):
 class ListProductAdd(BaseModel):
     article_no: str
     quantity: int = 1
+    name: str | None = None
+    image_url: str | None = None
+    ref_price: float | None = None
+    category: str | None = None
 
 
 class ListResponse(BaseModel):

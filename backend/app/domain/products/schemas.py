@@ -10,6 +10,7 @@ class ProductCreate(BaseModel):
     ref_price: float
     priority: str = "normal"
     category: str
+    quantity: int = 1
 
 
 class ProductUpdate(BaseModel):
@@ -18,6 +19,7 @@ class ProductUpdate(BaseModel):
     priority: str | None = None
     category: str | None = None
     image_url: str | None = None
+    quantity: int | None = None
 
 
 class ProductResponse(BaseModel):
@@ -28,6 +30,7 @@ class ProductResponse(BaseModel):
     ref_price: float
     priority: str
     category: str
+    quantity: int = 1
     ikea_url: str
     current_price: float | None = None
     latest_tags: list[str] = []

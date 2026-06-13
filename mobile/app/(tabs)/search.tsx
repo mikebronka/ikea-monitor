@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Pressable,
@@ -22,14 +23,24 @@ function useDebounce(value: string, delay: number) {
   return debounced;
 }
 
-function SearchResultCard({ item }: { item: SearchResult }) {
+function SearchResultCard({
+  item,
+  onAdd,
+  isAdding,
+  added,
+}: {
+  item: SearchResult;
+  onAdd: () => void;
+  isAdding: boolean;
+  added: boolean;
+}) {
   return (
     <View style={styles.resultCard}>
       {item.image_url ? (
         <Image source={{ uri: item.image_url }} style={styles.image} resizeMode="contain" />
       ) : (
         <View style={[styles.image, styles.imagePlaceholder]}>
-          <Text style={styles.placeholderText}>📷</Text>
+          <Text style={styles.placeholderText}>?</Text>
         </View>
       )}
       <View style={styles.resultInfo}>
@@ -50,12 +61,20 @@ function SearchResultCard({ item }: { item: SearchResult }) {
       </View>
       <View style={styles.priceBlock}>
         {item.price !== null ? (
-          <Text style={styles.price}>{item.price.toFixed(0)} zł</Text>
+          <Text style={styles.price}>{item.price.toFixed(0)} zl</Text>
         ) : (
-          <Text style={styles.noPrice}>—</Text>
+          <Text style={styles.noPrice}>--</Text>
         )}
-        <Pressable style={styles.addButton}>
-          <Text style={styles.addButtonText}>+ Dodaj</Text>
+        <Pressable
+          style={[styles.addButton, added && styles.addedButton]}
+          onPress={onAdd}
+          disabled={isAdding || added}
+        >
+          {isAdding ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.addButtonText}>{added ? "Dodano" : "+ Dodaj"}</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -64,12 +83,36 @@ function SearchResultCard({ item }: { item: SearchResult }) {
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
+  const [addedArticles, setAddedArticles] = useState<Set<string>>(new Set());
   const debouncedQuery = useDebounce(query.trim(), 300);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ["search", debouncedQuery],
-    queryFn: () => apiFetch<SearchResponse>(`/api/v1/search/?q=${encodeURIComponent(debouncedQuery)}`),
-    enabled: debouncedQuery.length >= 2,
+    queryFn: () =>
+      apiFetch<SearchResponse>(`/api/v1/search/?q=${encodeURIComponent(debouncedQuery)}`),
+    enabled: debouncedQuery.length >= 3,
+  });
+
+  const addMutation = useMutation({
+    mutationFn: (item: SearchResult) =>
+      apiFetch("/api/v1/products/", {
+        method: "POST",
+        body: JSON.stringify({
+          article_no: item.article_no,
+          name: `${item.name} ${item.type_name}`.trim(),
+          image_url: item.image_url,
+          ref_price: item.price ?? 0,
+          category: "other",
+        }),
+      }),
+    onSuccess: (_, item) => {
+      setAddedArticles((prev) => new Set(prev).add(item.article_no));
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: () => {
+      Alert.alert("Blad", "Nie udalo sie dodac produktu");
+    },
   });
 
   return (
@@ -77,27 +120,39 @@ export default function SearchScreen() {
       <View style={styles.searchRow}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Szukaj w IKEA... np. HAVSTORP 60x80"
+          placeholder="Wpisz nazwe serii, np. HAVSTORP, METOD, BODBYN"
           value={query}
           onChangeText={setQuery}
           returnKeyType="search"
           placeholderTextColor="#999"
           autoFocus
         />
-        {isFetching && <ActivityIndicator size="small" color="#0058a3" style={styles.searchSpinner} />}
+        {isFetching && (
+          <ActivityIndicator size="small" color="#0058a3" style={styles.searchSpinner} />
+        )}
       </View>
 
       <FlatList
         data={data?.results ?? []}
         keyExtractor={(item, i) => `${item.article_no}-${i}`}
-        renderItem={({ item }) => <SearchResultCard item={item} />}
+        renderItem={({ item }) => (
+          <SearchResultCard
+            item={item}
+            onAdd={() => addMutation.mutate(item)}
+            isAdding={addMutation.isPending && addMutation.variables?.article_no === item.article_no}
+            added={addedArticles.has(item.article_no)}
+          />
+        )}
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          debouncedQuery.length >= 2 && !isLoading ? (
-            <Text style={styles.emptyText}>Brak wyników dla "{debouncedQuery}"</Text>
-          ) : debouncedQuery.length < 2 ? (
-            <Text style={styles.emptyText}>Wpisz nazwę produktu IKEA</Text>
+          debouncedQuery.length >= 3 && !isLoading ? (
+            <Text style={styles.emptyText}>
+              Brak wynikow dla "{debouncedQuery}"
+              {"\n"}Sprobuj pelna nazwe serii, np. HAVSTORP
+            </Text>
+          ) : debouncedQuery.length < 3 ? (
+            <Text style={styles.emptyText}>Wpisz nazwe serii IKEA (min. 3 znaki)</Text>
           ) : null
         }
       />
@@ -133,7 +188,7 @@ const styles = StyleSheet.create({
   },
   image: { width: 70, height: 70, borderRadius: 6, marginRight: 12 },
   imagePlaceholder: { backgroundColor: "#f0f0f0", justifyContent: "center", alignItems: "center" },
-  placeholderText: { fontSize: 24 },
+  placeholderText: { fontSize: 20, color: "#ccc" },
   resultInfo: { flex: 1 },
   resultName: { fontSize: 14, fontWeight: "600", color: "#333" },
   resultType: { fontSize: 12, color: "#666", marginTop: 2 },
@@ -149,7 +204,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
+    minWidth: 70,
+    alignItems: "center",
   },
+  addedButton: { backgroundColor: "#27ae60" },
   addButtonText: { color: "#fff", fontSize: 12, fontWeight: "600" },
   emptyText: { textAlign: "center", color: "#999", marginTop: 40, fontSize: 15 },
 });

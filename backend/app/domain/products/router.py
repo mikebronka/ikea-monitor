@@ -46,6 +46,10 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("/", response_model=ProductResponse, status_code=201)
 async def create_product(data: ProductCreate, db: AsyncSession = Depends(get_db)):
+    existing = await db.execute(select(Product).where(Product.article_no == data.article_no))
+    product = existing.scalar_one_or_none()
+    if product:
+        return ProductResponse.model_validate(product)
     product = Product(**data.model_dump())
     db.add(product)
     await db.commit()

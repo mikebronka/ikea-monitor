@@ -16,6 +16,7 @@ class Product(Base):
     ref_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     priority: Mapped[str] = mapped_column(String(10), nullable=False, default="normal")
     category: Mapped[str] = mapped_column(String(20), nullable=False)
+    quantity: Mapped[int] = mapped_column(default=1, server_default="1")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

@@ -30,6 +30,12 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
             <View style={[styles.searchHandle, focused && styles.lineFocused]} />
           </>
         )}
+        {symbol === "folder" && (
+          <>
+            <View style={[styles.folderBody, focused && styles.cellFocused]} />
+            <View style={[styles.folderTab, focused && styles.cellFocused]} />
+          </>
+        )}
         {symbol === "gear" && (
           <>
             <View style={[styles.gearOuter, focused && styles.searchCircleFocused]} />
@@ -47,7 +53,8 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: "#333",
         tabBarInactiveTintColor: "#999",
-        tabBarStyle: { borderTopColor: "#e0e0e0", height: 60, paddingBottom: 8, paddingTop: 4 },
+        tabBarStyle: { borderTopColor: "#e0e0e0", paddingTop: 8, height: 70 },
+        tabBarLabelStyle: { paddingBottom: 8 },
         headerStyle: { backgroundColor: "#0058a3" },
         headerTintColor: "#fff",
         headerTitleStyle: { fontWeight: "bold" },
@@ -65,6 +72,13 @@ export default function TabLayout() {
         options={{
           title: "Produkty",
           tabBarIcon: ({ focused }) => <TabIcon symbol="list" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="lists"
+        options={{
+          title: "Listy",
+          tabBarIcon: ({ focused }) => <TabIcon symbol="folder" focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -131,4 +145,22 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   gearInnerFocused: { backgroundColor: "#333" },
+  folderBody: {
+    width: 18,
+    height: 12,
+    borderRadius: 2,
+    backgroundColor: "#999",
+    position: "absolute",
+    bottom: 1,
+  },
+  folderTab: {
+    width: 8,
+    height: 4,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+    backgroundColor: "#999",
+    position: "absolute",
+    top: 2,
+    left: 1,
+  },
 });

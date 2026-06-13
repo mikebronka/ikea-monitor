@@ -5,7 +5,9 @@ from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.domain.prices.models import PriceRecord, PriceChange
+from app.domain.prices.models import PriceChange, PriceRecord
+from app.domain.products.models import Product
+from app.domain.lists.models import ListProduct
 
 router = APIRouter()
 
@@ -74,4 +76,44 @@ async def price_summary(
     list_id: int | None = None,
     db: AsyncSession = Depends(get_db),
 ):
-    return {"message": "TODO: implement summary"}
+    product_query = select(Product).where(Product.is_active.is_(True))
+    if list_id:
+        product_ids_q = select(ListProduct.product_id).where(ListProduct.list_id == list_id)
+        product_query = product_query.where(Product.id.in_(product_ids_q))
+
+    result = await db.execute(product_query)
+    products = result.scalars().all()
+
+    total_ref = sum(float(p.ref_price) for p in products)
+    total_current = 0.0
+    products_with_price = 0
+    promo_count = 0
+
+    for product in products:
+        latest = await db.execute(
+            select(PriceRecord)
+            .where(PriceRecord.product_id == product.id)
+            .order_by(PriceRecord.recorded_at.desc())
+            .limit(1)
+        )
+        record = latest.scalar_one_or_none()
+        if record:
+            total_current += float(record.price)
+            products_with_price += 1
+            if record.tags:
+                promo_count += 1
+
+    since_7d = date.today() - timedelta(days=7)
+    changes_result = await db.execute(
+        select(func.count()).select_from(PriceChange).where(PriceChange.detected_at >= since_7d)
+    )
+    recent_changes = changes_result.scalar() or 0
+
+    return {
+        "product_count": len(products),
+        "total_ref": total_ref,
+        "total_current": total_current if products_with_price else None,
+        "savings": total_ref - total_current if products_with_price else None,
+        "promo_count": promo_count,
+        "recent_changes_7d": recent_changes,
+    }

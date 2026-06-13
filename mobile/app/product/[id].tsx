@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { apiFetch } from "../../src/api/client";
 import type { PriceHistoryResponse, Product } from "../../src/types";
 
@@ -34,8 +34,18 @@ export default function ProductDetailScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
+        {product.image_url && (
+          <Image
+            source={{ uri: product.image_url }}
+            style={styles.heroImage}
+            resizeMode="contain"
+          />
+        )}
         <Text style={styles.name}>{product.name}</Text>
         <Text style={styles.articleNo}>{product.article_no}</Text>
+        {product.quantity > 1 && (
+          <Text style={styles.qtyLabel}>Potrzeba: {product.quantity} szt.</Text>
+        )}
       </View>
 
       <View style={styles.priceCard}>
@@ -114,7 +124,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   loading: { fontSize: 16, color: "#666" },
-  header: { padding: 16, backgroundColor: "#fff" },
+  header: { padding: 16, backgroundColor: "#fff", alignItems: "center" },
+  heroImage: { width: 200, height: 200, marginBottom: 12 },
+  qtyLabel: { fontSize: 13, color: "#0058a3", fontWeight: "600", marginTop: 4 },
   name: { fontSize: 20, fontWeight: "700", color: "#2c3e50" },
   articleNo: { fontSize: 13, color: "#999", marginTop: 4 },
   priceCard: {
