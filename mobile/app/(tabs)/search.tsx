@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -12,6 +12,15 @@ import {
 } from "react-native";
 import { apiFetch } from "../../src/api/client";
 import type { SearchResponse, SearchResult } from "../../src/types";
+
+function useDebounce(value: string, delay: number) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
 
 function SearchResultCard({ item }: { item: SearchResult }) {
   return (
@@ -55,19 +64,13 @@ function SearchResultCard({ item }: { item: SearchResult }) {
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedQuery = useDebounce(query.trim(), 300);
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["search", searchTerm],
-    queryFn: () => apiFetch<SearchResponse>(`/api/v1/search/?q=${encodeURIComponent(searchTerm)}`),
-    enabled: searchTerm.length >= 2,
+    queryKey: ["search", debouncedQuery],
+    queryFn: () => apiFetch<SearchResponse>(`/api/v1/search/?q=${encodeURIComponent(debouncedQuery)}`),
+    enabled: debouncedQuery.length >= 2,
   });
-
-  const handleSearch = () => {
-    if (query.trim().length >= 2) {
-      setSearchTerm(query.trim());
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -77,28 +80,23 @@ export default function SearchScreen() {
           placeholder="Szukaj w IKEA... np. HAVSTORP 60x80"
           value={query}
           onChangeText={setQuery}
-          onSubmitEditing={handleSearch}
           returnKeyType="search"
           placeholderTextColor="#999"
+          autoFocus
         />
-        <Pressable style={styles.searchButton} onPress={handleSearch}>
-          <Text style={styles.searchButtonText}>Szukaj</Text>
-        </Pressable>
+        {isFetching && <ActivityIndicator size="small" color="#0058a3" style={styles.searchSpinner} />}
       </View>
-
-      {(isLoading || isFetching) && (
-        <ActivityIndicator size="large" color="#0058a3" style={styles.loader} />
-      )}
 
       <FlatList
         data={data?.results ?? []}
         keyExtractor={(item, i) => `${item.article_no}-${i}`}
         renderItem={({ item }) => <SearchResultCard item={item} />}
         contentContainerStyle={styles.list}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          searchTerm && !isLoading ? (
-            <Text style={styles.emptyText}>Brak wyników dla "{searchTerm}"</Text>
-          ) : !searchTerm ? (
+          debouncedQuery.length >= 2 && !isLoading ? (
+            <Text style={styles.emptyText}>Brak wyników dla "{debouncedQuery}"</Text>
+          ) : debouncedQuery.length < 2 ? (
             <Text style={styles.emptyText}>Wpisz nazwę produktu IKEA</Text>
           ) : null
         }
@@ -119,14 +117,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e0e0e0",
   },
-  searchButton: {
-    backgroundColor: "#0058a3",
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    justifyContent: "center",
-  },
-  searchButtonText: { color: "#fff", fontWeight: "600" },
-  loader: { marginTop: 20 },
+  searchSpinner: { position: "absolute", right: 24, top: 22 },
   list: { padding: 12 },
   resultCard: {
     backgroundColor: "#fff",

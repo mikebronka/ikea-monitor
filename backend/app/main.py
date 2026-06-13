@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.domain.products.router import router as products_router
 from app.domain.lists.router import router as lists_router
@@ -17,6 +18,14 @@ app = FastAPI(
     title="IKEA Price Monitor",
     version="0.1.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(products_router, prefix="/api/v1/products", tags=["products"])

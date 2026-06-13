@@ -80,19 +80,21 @@ export default function ProductsScreen() {
         placeholderTextColor="#999"
       />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar}>
-        {CATEGORIES.map((cat) => (
-          <Pressable
-            key={cat.key}
-            style={[styles.chip, category === cat.key && styles.chipActive]}
-            onPress={() => setCategory(cat.key)}
-          >
-            <Text style={[styles.chipText, category === cat.key && styles.chipTextActive]}>
-              {cat.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <View style={styles.filterBar}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {CATEGORIES.map((cat) => (
+            <Pressable
+              key={cat.key}
+              style={[styles.chip, category === cat.key && styles.chipActive]}
+              onPress={() => setCategory(cat.key)}
+            >
+              <Text style={[styles.chipText, category === cat.key && styles.chipTextActive]}>
+                {cat.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
 
       <FlatList
         data={products}
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e0e0e0",
   },
-  filterBar: { paddingHorizontal: 12, paddingVertical: 10, maxHeight: 50 },
+  filterBar: { flexDirection: "row", paddingHorizontal: 12, paddingVertical: 10 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
