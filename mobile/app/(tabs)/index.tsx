@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { apiFetch } from "../../src/api/client";
 import type { ProductListResponse } from "../../src/types";
+import { translateTag } from "../../src/utils/tags";
 
 export default function DashboardScreen() {
   const { data, isLoading, error } = useQuery({
@@ -86,7 +87,7 @@ export default function DashboardScreen() {
                   <View style={styles.tagRow}>
                     {p.latest_tags.map((tag) => (
                       <View key={tag} style={styles.tag}>
-                        <Text style={styles.tagText}>{tag.replace(/_/g, " ")}</Text>
+                        <Text style={styles.tagText}>{translateTag(tag)}</Text>
                       </View>
                     ))}
                   </View>

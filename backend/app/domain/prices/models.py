@@ -14,6 +14,8 @@ class PriceRecord(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    previous_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    lowest_30d_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     tags: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     recorded_at: Mapped[date] = mapped_column(Date, nullable=False, server_default=func.current_date())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

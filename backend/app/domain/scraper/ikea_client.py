@@ -40,8 +40,31 @@ async def fetch_product_data(client: httpx.AsyncClient, article_no: str) -> dict
         sales_price = product.get("salesPrice", {})
         price = sales_price.get("numeral")
         tags = sales_price.get("tags", [])
+
+        prev_price = None
+        previous = sales_price.get("previous", {})
+        if isinstance(previous, dict) and previous.get("wholeNumber"):
+            whole = previous["wholeNumber"]
+            decimals = previous.get("decimals", "")
+            try:
+                prev_price = float(f"{whole}.{decimals}") if decimals else float(whole)
+            except ValueError:
+                pass
+
+        lowest_30d = None
+        lowest = sales_price.get("lowestPreviousSalesPrice", {})
+        if isinstance(lowest, dict) and lowest.get("wholeNumber"):
+            whole = lowest["wholeNumber"]
+            decimals = lowest.get("decimals", "")
+            try:
+                lowest_30d = float(f"{whole}.{decimals}") if decimals else float(whole)
+            except ValueError:
+                pass
+
         return {
             "price": float(price) if price is not None else None,
+            "previous_price": prev_price,
+            "lowest_30d_price": lowest_30d,
             "tags": tags,
         }
     except Exception as e:

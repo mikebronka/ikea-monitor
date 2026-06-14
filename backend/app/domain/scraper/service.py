@@ -15,7 +15,7 @@ from app.domain.scraper.ikea_client import fetch_product_data
 log = logging.getLogger(__name__)
 
 
-async def run_scraper() -> dict:
+async def run_scraper(on_progress=None) -> dict:
     log.info("Scraper started")
     today = date.today()
     stats = {"checked": 0, "price_changes": 0, "tag_changes": 0, "errors": 0}
@@ -26,8 +26,11 @@ async def run_scraper() -> dict:
         )
         products = result.scalars().all()
 
+    total = len(products)
     async with httpx.AsyncClient() as client:
-        for product in products:
+        for i, product in enumerate(products):
+            if on_progress:
+                on_progress(i + 1, total, product.name)
             try:
                 await _check_product(client, product, today)
                 stats["checked"] += 1
@@ -48,6 +51,8 @@ async def _check_product(client: httpx.AsyncClient, product: Product, today: dat
 
     current_price = data["price"]
     current_tags = data.get("tags", [])
+    previous_price = data.get("previous_price")
+    lowest_30d_price = data.get("lowest_30d_price")
 
     async with async_session() as db:
         existing = await db.execute(
@@ -60,15 +65,24 @@ async def _check_product(client: httpx.AsyncClient, product: Product, today: dat
 
         if record:
             record.price = current_price
+            record.previous_price = previous_price
+            record.lowest_30d_price = lowest_30d_price
             record.tags = current_tags
         else:
             record = PriceRecord(
                 product_id=product.id,
                 price=current_price,
+                previous_price=previous_price,
+                lowest_30d_price=lowest_30d_price,
                 tags=current_tags,
                 recorded_at=today,
             )
             db.add(record)
+
+        if previous_price and abs(float(product.ref_price) - previous_price) > 0.01:
+            log.info(f"  {product.name}: ref_price {product.ref_price} -> {previous_price}")
+            product.ref_price = previous_price
+            db.add(product)
 
         prev_result = await db.execute(
             select(PriceRecord)

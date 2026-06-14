@@ -51,12 +51,23 @@ async def search_ikea(q: str = Query(..., min_length=2)):
             except ValueError:
                 pass
 
+        lowest_30d = None
+        lowest = sales_price.get("lowestPreviousSalesPrice", {})
+        if isinstance(lowest, dict) and lowest.get("wholeNumber"):
+            whole = lowest["wholeNumber"]
+            decimals = lowest.get("decimals", "")
+            try:
+                lowest_30d = float(f"{whole}.{decimals}") if decimals else float(whole)
+            except ValueError:
+                pass
+
         results.append({
             "article_no": article_no,
             "name": product.get("name", ""),
             "type_name": product.get("typeName", ""),
             "price": sales_price.get("numeral"),
             "previous_price": prev_price,
+            "lowest_30d_price": lowest_30d,
             "tags": sales_price.get("tags", []),
             "image_url": main_image,
             "ikea_url": pip_url,

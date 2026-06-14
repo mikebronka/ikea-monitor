@@ -13,6 +13,7 @@ import {
 import { apiFetch } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
 import type { SearchResponse, SearchResult } from "../../src/types";
+import { translateTag } from "../../src/utils/tags";
 
 function useDebounce(value: string, delay: number) {
   const [debounced, setDebounced] = useState(value);
@@ -53,7 +54,7 @@ function SearchResultCard({
           <View style={styles.tagRow}>
             {item.tags.map((tag) => (
               <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag.replace(/_/g, " ")}</Text>
+                <Text style={styles.tagText}>{translateTag(tag)}</Text>
               </View>
             ))}
           </View>
@@ -65,6 +66,9 @@ function SearchResultCard({
             <Text style={styles.price}>{item.price.toFixed(0)} zl</Text>
             {item.previous_price !== null && item.previous_price !== item.price && (
               <Text style={styles.previousPrice}>{item.previous_price.toFixed(0)} zl</Text>
+            )}
+            {item.lowest_30d_price !== null && (
+              <Text style={styles.lowest30d}>30d: {item.lowest_30d_price.toFixed(0)} zl</Text>
             )}
           </>
         ) : (
@@ -89,7 +93,7 @@ function SearchResultCard({
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
   const [addedArticles, setAddedArticles] = useState<Set<string>>(new Set());
-  const debouncedQuery = useDebounce(query.trim(), 300);
+  const debouncedQuery = useDebounce(query.trim(), 200);
   const queryClient = useQueryClient();
   const toast = useToast();
 
@@ -110,6 +114,8 @@ export default function SearchScreen() {
           image_url: item.image_url,
           ref_price: item.previous_price ?? item.price ?? 0,
           current_price: item.price,
+          previous_price: item.previous_price,
+          lowest_30d_price: item.lowest_30d_price,
           tags: item.tags,
           category: "other",
         }),
@@ -208,6 +214,7 @@ const styles = StyleSheet.create({
   priceBlock: { alignItems: "flex-end", justifyContent: "space-between" },
   price: { fontSize: 16, fontWeight: "700", color: "#0058a3" },
   previousPrice: { fontSize: 12, color: "#999", textDecorationLine: "line-through", marginTop: 1 },
+  lowest30d: { fontSize: 10, color: "#888", marginTop: 1 },
   noPrice: { fontSize: 16, color: "#ccc" },
   addButton: {
     backgroundColor: "#0058a3",

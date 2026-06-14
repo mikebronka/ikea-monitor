@@ -8,6 +8,8 @@ export interface Product {
   category: string;
   ikea_url: string;
   current_price: number | null;
+  previous_price: number | null;
+  lowest_30d_price: number | null;
   latest_tags: string[];
   quantity: number;
   price_vs_ref: number | null;
@@ -25,6 +27,7 @@ export interface SearchResult {
   type_name: string;
   price: number | null;
   previous_price: number | null;
+  lowest_30d_price: number | null;
   tags: string[];
   image_url: string;
   ikea_url: string;
@@ -38,6 +41,8 @@ export interface SearchResponse {
 export interface PricePoint {
   date: string;
   price: number;
+  previous_price: number | null;
+  lowest_30d_price: number | null;
   tags: string[];
 }
 
@@ -81,6 +86,11 @@ export interface ScraperStatus {
     errors: number;
   } | null;
   is_running: boolean;
+  progress: {
+    current: number;
+    total: number;
+    current_product: string;
+  } | null;
 }
 
 export interface PriceSummary {

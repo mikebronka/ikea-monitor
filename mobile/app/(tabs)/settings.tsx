@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { API_BASE, apiFetch } from "../../src/api/client";
+import { useToast } from "../../src/components/Toast";
 import type { ScraperStatus } from "../../src/types";
 
 export default function SettingsScreen() {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const {
     data: health,
@@ -18,15 +20,22 @@ export default function SettingsScreen() {
   const { data: scraper } = useQuery({
     queryKey: ["scraperStatus"],
     queryFn: () => apiFetch<ScraperStatus>("/api/v1/scraper/status"),
-    refetchInterval: 5000,
+    refetchInterval: scraper?.is_running ? 1500 : 5000,
   });
 
   const triggerMutation = useMutation({
-    mutationFn: () => apiFetch("/api/v1/scraper/trigger", { method: "POST" }),
-    onSuccess: () => {
+    mutationFn: () => apiFetch<{ status: string; checked?: number; price_changes?: number }>(
+      "/api/v1/scraper/trigger",
+      { method: "POST" }
+    ),
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["scraperStatus"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      if (data?.checked !== undefined) {
+        toast(`Gotowe: ${data.checked} produktow, ${data.price_changes ?? 0} zmian cen`);
+      }
     },
+    onError: () => toast("Blad scrapera", "error"),
   });
 
   return (
@@ -58,6 +67,21 @@ export default function SettingsScreen() {
             {scraper?.is_running ? "Dziala..." : "Gotowy"}
           </Text>
         </View>
+        {scraper?.is_running && scraper.progress && scraper.progress.total > 0 && (
+          <>
+            <View style={styles.progressContainer}>
+              <View
+                style={[
+                  styles.progressBar,
+                  { width: `${(scraper.progress.current / scraper.progress.total) * 100}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.progressText}>
+              {scraper.progress.current}/{scraper.progress.total} — {scraper.progress.current_product}
+            </Text>
+          </>
+        )}
         {scraper?.last_run && (
           <>
             <View style={styles.row}>
@@ -139,6 +163,19 @@ const styles = StyleSheet.create({
   },
   triggerDisabled: { opacity: 0.5 },
   triggerText: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  progressContainer: {
+    height: 8,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    marginTop: 8,
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#0058a3",
+    borderRadius: 4,
+  },
+  progressText: { fontSize: 11, color: "#888", marginTop: 4 },
   apiUrl: { fontSize: 11 },
   footer: { textAlign: "center", color: "#bbb", marginTop: 40 },
 });

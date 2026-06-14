@@ -29,6 +29,8 @@ async def _enrich_product(product: Product, db: AsyncSession) -> ProductResponse
     resp = ProductResponse.model_validate(product)
     if record:
         resp.current_price = float(record.price)
+        resp.previous_price = float(record.previous_price) if record.previous_price else None
+        resp.lowest_30d_price = float(record.lowest_30d_price) if record.lowest_30d_price else None
         resp.latest_tags = record.tags or []
         resp.last_checked = record.recorded_at
         if product.ref_price:
@@ -92,6 +94,8 @@ async def create_product(data: ProductCreate, db: AsyncSession = Depends(get_db)
             db.add(PriceRecord(
                 product_id=product.id,
                 price=price,
+                previous_price=data.previous_price,
+                lowest_30d_price=data.lowest_30d_price,
                 tags=data.tags or [],
                 recorded_at=date.today(),
             ))
@@ -99,7 +103,7 @@ async def create_product(data: ProductCreate, db: AsyncSession = Depends(get_db)
         await db.refresh(product)
         return await _enrich_product(product, db)
 
-    create_data = data.model_dump(exclude={"current_price", "tags"})
+    create_data = data.model_dump(exclude={"current_price", "previous_price", "lowest_30d_price", "tags"})
     product = Product(**create_data)
     db.add(product)
     await db.flush()
@@ -108,6 +112,8 @@ async def create_product(data: ProductCreate, db: AsyncSession = Depends(get_db)
     db.add(PriceRecord(
         product_id=product.id,
         price=price,
+        previous_price=data.previous_price,
+        lowest_30d_price=data.lowest_30d_price,
         tags=data.tags or [],
         recorded_at=date.today(),
     ))

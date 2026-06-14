@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { apiFetch } from "../../src/api/client";
 import type { PriceHistoryResponse, Product } from "../../src/types";
+import { translateTag } from "../../src/utils/tags";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -143,10 +144,6 @@ export default function ProductDetailScreen() {
 
       <View style={styles.priceCard}>
         <View style={styles.priceRow}>
-          <View style={styles.priceItem}>
-            <Text style={styles.priceLabel}>Cena ref.</Text>
-            <Text style={styles.priceValue}>{product.ref_price.toFixed(0)} zł</Text>
-          </View>
           {currentPrice !== null && (
             <View style={styles.priceItem}>
               <Text style={styles.priceLabel}>Aktualna</Text>
@@ -155,12 +152,32 @@ export default function ProductDetailScreen() {
               </Text>
             </View>
           )}
+          <View style={styles.priceItem}>
+            <Text style={styles.priceLabel}>Standardowa</Text>
+            <Text style={styles.priceValue}>{product.ref_price.toFixed(0)} zł</Text>
+          </View>
         </View>
+        {(product.previous_price || product.lowest_30d_price) && (
+          <View style={styles.priceRow2}>
+            {product.previous_price !== null && (
+              <View style={styles.priceItem2}>
+                <Text style={styles.priceLabel2}>Poprzednia</Text>
+                <Text style={styles.priceValue2}>{product.previous_price.toFixed(0)} zł</Text>
+              </View>
+            )}
+            {product.lowest_30d_price !== null && (
+              <View style={styles.priceItem2}>
+                <Text style={styles.priceLabel2}>Najniższa 30d</Text>
+                <Text style={styles.priceValue2}>{product.lowest_30d_price.toFixed(0)} zł</Text>
+              </View>
+            )}
+          </View>
+        )}
         {product.latest_tags.length > 0 && (
           <View style={styles.tagRow}>
             {product.latest_tags.map((tag) => (
               <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag.replace(/_/g, " ")}</Text>
+                <Text style={styles.tagText}>{translateTag(tag)}</Text>
               </View>
             ))}
           </View>
@@ -189,15 +206,22 @@ export default function ProductDetailScreen() {
             </View>
           </View>
 
+          <View style={styles.historyHeader}>
+            <Text style={[styles.historyDate, styles.historyHeaderText]}>Data</Text>
+            <Text style={[styles.historyCol, styles.historyHeaderText]}>Cena</Text>
+            <Text style={[styles.historyCol, styles.historyHeaderText]}>Poprz.</Text>
+            <Text style={[styles.historyCol, styles.historyHeaderText]}>30d</Text>
+          </View>
           {pricePoints.map((point) => (
             <View key={point.date} style={styles.historyRow}>
-              <Text style={styles.historyDate}>{point.date}</Text>
-              <Text style={styles.historyPrice}>{point.price.toFixed(2)} zł</Text>
-              {point.tags.length > 0 && (
-                <View style={styles.miniTag}>
-                  <Text style={styles.miniTagText}>{point.tags[0]}</Text>
-                </View>
-              )}
+              <Text style={styles.historyDate}>{point.date.slice(5)}</Text>
+              <Text style={[styles.historyCol, styles.historyPrice]}>{point.price.toFixed(0)}</Text>
+              <Text style={styles.historyCol}>
+                {point.previous_price ? point.previous_price.toFixed(0) : "—"}
+              </Text>
+              <Text style={styles.historyCol}>
+                {point.lowest_30d_price ? point.lowest_30d_price.toFixed(0) : "—"}
+              </Text>
             </View>
           ))}
         </View>
@@ -234,9 +258,20 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   priceRow: { flexDirection: "row", justifyContent: "space-around" },
+  priceRow2: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
   priceItem: { alignItems: "center" },
+  priceItem2: { alignItems: "center" },
   priceLabel: { fontSize: 12, color: "#888" },
+  priceLabel2: { fontSize: 11, color: "#aaa" },
   priceValue: { fontSize: 28, fontWeight: "700", color: "#333", marginTop: 4 },
+  priceValue2: { fontSize: 18, fontWeight: "600", color: "#666", marginTop: 2 },
   priceHighlight: { color: "#0058a3" },
   tagRow: { flexDirection: "row", justifyContent: "center", marginTop: 12, gap: 6 },
   tag: { backgroundColor: "#d4edda", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
@@ -253,6 +288,14 @@ const styles = StyleSheet.create({
   stat: { alignItems: "center" },
   statLabel: { fontSize: 11, color: "#888" },
   statValue: { fontSize: 18, fontWeight: "700", color: "#333", marginTop: 2 },
+  historyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    borderBottomWidth: 2,
+    borderBottomColor: "#ddd",
+  },
+  historyHeaderText: { fontWeight: "700", color: "#555", fontSize: 11 },
   historyRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -260,10 +303,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
-  historyDate: { fontSize: 13, color: "#666", width: 100 },
-  historyPrice: { fontSize: 14, fontWeight: "600", color: "#333", flex: 1 },
-  miniTag: { backgroundColor: "#e8f5e9", paddingHorizontal: 6, paddingVertical: 1, borderRadius: 3 },
-  miniTagText: { fontSize: 9, color: "#2e7d32" },
+  historyDate: { fontSize: 12, color: "#666", width: 55 },
+  historyCol: { fontSize: 13, color: "#888", flex: 1, textAlign: "center" },
+  historyPrice: { fontWeight: "600", color: "#333" },
   ikeaButton: {
     backgroundColor: "#0058a3",
     margin: 16,

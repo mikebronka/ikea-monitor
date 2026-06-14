@@ -9,6 +9,8 @@ class ProductCreate(BaseModel):
     image_url: str | None = None
     ref_price: float
     current_price: float | None = None
+    previous_price: float | None = None
+    lowest_30d_price: float | None = None
     tags: list[str] = []
     priority: str = "normal"
     category: str
@@ -35,6 +37,8 @@ class ProductResponse(BaseModel):
     quantity: int = 1
     ikea_url: str
     current_price: float | None = None
+    previous_price: float | None = None
+    lowest_30d_price: float | None = None
     latest_tags: list[str] = []
     price_vs_ref: float | None = None
     last_checked: date | None = None

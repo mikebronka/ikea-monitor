@@ -17,6 +17,7 @@ import Swipeable from "react-native-gesture-handler/Swipeable";
 import { apiFetch } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
 import type { Product, ProductListResponse, ShoppingList } from "../../src/types";
+import { translateTag } from "../../src/utils/tags";
 
 const CATEGORIES = [
   { key: "", label: "Wszystkie" },
@@ -111,7 +112,7 @@ function ProductCard({
           <View style={styles.tagRow}>
             {product.latest_tags.map((tag) => (
               <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag.replace(/_/g, " ")}</Text>
+                <Text style={styles.tagText}>{translateTag(tag)}</Text>
               </View>
             ))}
           </View>

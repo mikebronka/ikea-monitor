@@ -32,7 +32,13 @@ async def price_history(
     return {
         "product_id": product_id,
         "history": [
-            {"date": r.recorded_at.isoformat(), "price": float(r.price), "tags": r.tags}
+            {
+                "date": r.recorded_at.isoformat(),
+                "price": float(r.price),
+                "previous_price": float(r.previous_price) if r.previous_price else None,
+                "lowest_30d_price": float(r.lowest_30d_price) if r.lowest_30d_price else None,
+                "tags": r.tags,
+            }
             for r in records
         ],
     }
