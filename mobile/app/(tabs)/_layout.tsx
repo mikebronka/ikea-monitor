@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
   return (
@@ -48,54 +49,68 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: "#333",
-        tabBarInactiveTintColor: "#999",
-        tabBarStyle: { borderTopColor: "#e0e0e0", paddingTop: 8, height: 70 },
-        tabBarLabelStyle: { paddingBottom: 8 },
-        headerStyle: { backgroundColor: "#0058a3" },
-        headerTintColor: "#fff",
-        headerTitleStyle: { fontWeight: "bold" },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Dashboard",
-          tabBarIcon: ({ focused }) => <TabIcon symbol="grid" focused={focused} />,
+    <View style={{ flex: 1 }}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: "#0058a3",
+          tabBarInactiveTintColor: "#999",
+          tabBarStyle: { borderTopColor: "#e0e0e0", paddingTop: 4, marginBottom: 15 },
+          headerStyle: { backgroundColor: "#0058a3" },
+          headerTintColor: "#fff",
+          headerTitleStyle: { fontWeight: "bold" },
         }}
-      />
-      <Tabs.Screen
-        name="products"
-        options={{
-          title: "Produkty",
-          tabBarIcon: ({ focused }) => <TabIcon symbol="list" focused={focused} />,
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Dashboard",
+            tabBarIcon: ({ focused }) => <TabIcon symbol="grid" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="products"
+          options={{
+            title: "Produkty",
+            tabBarIcon: ({ focused }) => <TabIcon symbol="list" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="lists"
+          options={{
+            title: "Listy",
+            tabBarIcon: ({ focused }) => <TabIcon symbol="folder" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="search"
+          options={{
+            title: "Szukaj",
+            tabBarIcon: ({ focused }) => <TabIcon symbol="search" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: "Ustawienia",
+            tabBarIcon: ({ focused }) => <TabIcon symbol="gear" focused={focused} />,
+          }}
+        />
+      </Tabs>
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: Math.max(insets.bottom, 8),
+          backgroundColor: "#000",
         }}
+        pointerEvents="none"
       />
-      <Tabs.Screen
-        name="lists"
-        options={{
-          title: "Listy",
-          tabBarIcon: ({ focused }) => <TabIcon symbol="folder" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{
-          title: "Szukaj",
-          tabBarIcon: ({ focused }) => <TabIcon symbol="search" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Ustawienia",
-          tabBarIcon: ({ focused }) => <TabIcon symbol="gear" focused={focused} />,
-        }}
-      />
-    </Tabs>
+    </View>
   );
 }
 
@@ -105,10 +120,10 @@ const styles = StyleSheet.create({
   iconFocused: {},
   gridRow: { flexDirection: "row", gap: 3 },
   gridCell: { width: 7, height: 7, borderRadius: 2, backgroundColor: "#999", marginBottom: 3 },
-  cellFocused: { backgroundColor: "#333" },
+  cellFocused: { backgroundColor: "#0058a3" },
   listLine: { width: 18, height: 2.5, backgroundColor: "#999", borderRadius: 1, marginBottom: 3 },
   lineShort: { width: 12 },
-  lineFocused: { backgroundColor: "#333" },
+  lineFocused: { backgroundColor: "#0058a3" },
   searchCircle: {
     width: 12,
     height: 12,
@@ -119,7 +134,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 1,
   },
-  searchCircleFocused: { borderColor: "#333" },
+  searchCircleFocused: { borderColor: "#0058a3" },
   searchHandle: {
     width: 2.5,
     height: 7,
@@ -144,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#999",
     position: "absolute",
   },
-  gearInnerFocused: { backgroundColor: "#333" },
+  gearInnerFocused: { backgroundColor: "#0058a3" },
   folderBody: {
     width: 18,
     height: 12,

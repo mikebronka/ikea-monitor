@@ -26,7 +26,7 @@ export default function DashboardScreen() {
   }
 
   const products = data?.items ?? [];
-  const totalRef = products.reduce((sum, p) => sum + p.ref_price, 0);
+  const totalRef = products.reduce((sum, p) => sum + p.ref_price * p.quantity, 0);
   const withTags = products.filter((p) => p.latest_tags.length > 0);
 
   return (

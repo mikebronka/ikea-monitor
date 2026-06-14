@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { apiFetch } from "../../src/api/client";
+import { API_BASE, apiFetch } from "../../src/api/client";
 import type { ScraperStatus } from "../../src/types";
 
 export default function SettingsScreen() {
   const queryClient = useQueryClient();
 
-  const { data: health } = useQuery({
+  const {
+    data: health,
+    error: healthError,
+    isLoading: healthLoading,
+  } = useQuery({
     queryKey: ["health"],
     queryFn: () => apiFetch<{ status: string }>("/api/v1/health"),
   });
@@ -31,8 +35,17 @@ export default function SettingsScreen() {
         <Text style={styles.cardTitle}>Status API</Text>
         <View style={styles.row}>
           <Text style={styles.label}>Backend:</Text>
-          <Text style={[styles.value, health?.status === "ok" ? styles.ok : styles.err]}>
-            {health?.status ?? "Laczenie..."}
+          <Text
+            style={[
+              styles.value,
+              health?.status === "ok" ? styles.ok : styles.err,
+            ]}
+          >
+            {healthLoading
+              ? "Łączenie..."
+              : health?.status === "ok"
+                ? "ok"
+                : healthError?.message ?? "Błąd"}
           </Text>
         </View>
       </View>
@@ -86,6 +99,10 @@ export default function SettingsScreen() {
           <Text style={styles.label}>Stack:</Text>
           <Text style={styles.value}>Expo + FastAPI</Text>
         </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>API URL:</Text>
+          <Text style={[styles.value, styles.apiUrl]}>{API_BASE}</Text>
+        </View>
       </View>
 
       <Text style={styles.footer}>IKEA Price Monitor</Text>
@@ -122,5 +139,6 @@ const styles = StyleSheet.create({
   },
   triggerDisabled: { opacity: 0.5 },
   triggerText: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  apiUrl: { fontSize: 11 },
   footer: { textAlign: "center", color: "#bbb", marginTop: 40 },
 });

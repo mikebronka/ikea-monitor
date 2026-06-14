@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
   Alert,
   FlatList,
   Image,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { apiFetch } from "../../src/api/client";
@@ -52,9 +55,53 @@ function ListItemCard({
   );
 }
 
+function RenameModal({
+  visible,
+  currentName,
+  onClose,
+  onSave,
+}: {
+  visible: boolean;
+  currentName: string;
+  onClose: () => void;
+  onSave: (name: string) => void;
+}) {
+  const [name, setName] = useState(currentName);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+          <Text style={styles.modalTitle}>Zmien nazwe listy</Text>
+          <TextInput
+            style={styles.modalInput}
+            value={name}
+            onChangeText={setName}
+            autoFocus
+            selectTextOnFocus
+          />
+          <View style={styles.modalButtons}>
+            <Pressable style={styles.modalCancelBtn} onPress={onClose}>
+              <Text style={styles.modalCancelText}>Anuluj</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.modalSaveBtn, !name.trim() && styles.modalSaveDisabled]}
+              onPress={() => name.trim() && onSave(name.trim())}
+              disabled={!name.trim()}
+            >
+              <Text style={styles.modalSaveText}>Zapisz</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Pressable>
+    </Modal>
+  );
+}
+
 export default function ListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const [renameVisible, setRenameVisible] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["list", id],
@@ -67,6 +114,19 @@ export default function ListDetailScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list", id] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
+    },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: (name: string) =>
+      apiFetch(`/api/v1/lists/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["list", id] });
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
+      setRenameVisible(false);
     },
   });
 
@@ -85,8 +145,18 @@ export default function ListDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ title: data.name }} />
+      <RenameModal
+        visible={renameVisible}
+        currentName={data.name}
+        onClose={() => setRenameVisible(false)}
+        onSave={(name) => renameMutation.mutate(name)}
+      />
       <View style={styles.header}>
-        <Text style={styles.title}>{data.name}</Text>
+        <Pressable onPress={() => setRenameVisible(true)} style={styles.titleRow}>
+          <Text style={styles.title}>{data.name}</Text>
+          <Text style={styles.editIcon}>✎</Text>
+        </Pressable>
         {data.description ? <Text style={styles.desc}>{data.description}</Text> : null}
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
@@ -166,4 +236,39 @@ const styles = StyleSheet.create({
   removeButton: { marginTop: 8, paddingHorizontal: 10, paddingVertical: 4 },
   removeText: { fontSize: 11, color: "#c0392b" },
   emptyText: { textAlign: "center", color: "#999", marginTop: 40, fontSize: 15 },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  editIcon: { fontSize: 18, color: "#888" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 20,
+    width: "85%",
+    maxWidth: 400,
+  },
+  modalTitle: { fontSize: 18, fontWeight: "700", color: "#2c3e50", marginBottom: 12 },
+  modalInput: {
+    backgroundColor: "#f5f5f5",
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  modalButtons: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 16 },
+  modalCancelBtn: { paddingHorizontal: 16, paddingVertical: 10 },
+  modalCancelText: { color: "#666", fontSize: 14 },
+  modalSaveBtn: {
+    backgroundColor: "#0058a3",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  modalSaveDisabled: { opacity: 0.5 },
+  modalSaveText: { color: "#fff", fontWeight: "600", fontSize: 14 },
 });
