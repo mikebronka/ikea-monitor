@@ -53,7 +53,10 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: "#fbdb00",
         tabBarInactiveTintColor: "rgba(255,255,255,0.7)",
-        tabBarStyle: { borderTopColor: "#004f93", paddingTop: 4, marginBottom: 15, backgroundColor: "#0058a3" },
+        tabBarStyle: { borderTopColor: "#004f93", paddingTop: 4, marginBottom: 15, backgroundColor: "transparent" },
+        tabBarBackground: () => (
+          <View style={{ position: "absolute", top: 0, bottom: -15, left: 0, right: 0, backgroundColor: "#0058a3" }} />
+        ),
         headerStyle: { backgroundColor: "#0058a3" },
         headerTintColor: "#fff",
         headerTitleStyle: { fontWeight: "bold" },

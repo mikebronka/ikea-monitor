@@ -1,12 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import { Platform, View } from "react-native";
+import * as SystemUI from "expo-system-ui";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ToastProvider } from "../src/components/Toast";
+
+SystemUI.setBackgroundColorAsync("#000000");
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,12 +19,6 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  useEffect(() => {
-    if (Platform.OS === "android") {
-      NavigationBar.setButtonStyleAsync("light");
-    }
-  }, []);
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -66,7 +61,7 @@ function RootContent() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: Math.max(insets.bottom, 8),
+          height: insets.bottom,
           backgroundColor: "#000",
         }}
         pointerEvents="none"
