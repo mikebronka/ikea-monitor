@@ -1,6 +1,5 @@
 import { Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
   return (
@@ -49,20 +48,17 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
 }
 
 export default function TabLayout() {
-  const insets = useSafeAreaInsets();
-
   return (
-    <View style={{ flex: 1 }}>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: "#0058a3",
-          tabBarInactiveTintColor: "#999",
-          tabBarStyle: { borderTopColor: "#e0e0e0", paddingTop: 4, marginBottom: 15 },
-          headerStyle: { backgroundColor: "#0058a3" },
-          headerTintColor: "#fff",
-          headerTitleStyle: { fontWeight: "bold" },
-        }}
-      >
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: "#fbdb00",
+        tabBarInactiveTintColor: "rgba(255,255,255,0.7)",
+        tabBarStyle: { borderTopColor: "#004f93", paddingTop: 4, marginBottom: 15, backgroundColor: "#0058a3" },
+        headerStyle: { backgroundColor: "#0058a3" },
+        headerTintColor: "#fff",
+        headerTitleStyle: { fontWeight: "bold" },
+      }}
+    >
         <Tabs.Screen
           name="index"
           options={{
@@ -98,19 +94,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => <TabIcon symbol="gear" focused={focused} />,
           }}
         />
-      </Tabs>
-      <View
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: Math.max(insets.bottom, 8),
-          backgroundColor: "#000",
-        }}
-        pointerEvents="none"
-      />
-    </View>
+    </Tabs>
   );
 }
 
@@ -119,26 +103,26 @@ const styles = StyleSheet.create({
   icon: { width: 22, height: 22, alignItems: "center", justifyContent: "center" },
   iconFocused: {},
   gridRow: { flexDirection: "row", gap: 3 },
-  gridCell: { width: 7, height: 7, borderRadius: 2, backgroundColor: "#999", marginBottom: 3 },
-  cellFocused: { backgroundColor: "#0058a3" },
-  listLine: { width: 18, height: 2.5, backgroundColor: "#999", borderRadius: 1, marginBottom: 3 },
+  gridCell: { width: 7, height: 7, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.7)", marginBottom: 3 },
+  cellFocused: { backgroundColor: "#fbdb00" },
+  listLine: { width: 18, height: 2.5, backgroundColor: "rgba(255,255,255,0.7)", borderRadius: 1, marginBottom: 3 },
   lineShort: { width: 12 },
-  lineFocused: { backgroundColor: "#0058a3" },
+  lineFocused: { backgroundColor: "#fbdb00" },
   searchCircle: {
     width: 12,
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: "#999",
+    borderColor: "rgba(255,255,255,0.7)",
     position: "absolute",
     top: 0,
     left: 1,
   },
-  searchCircleFocused: { borderColor: "#0058a3" },
+  searchCircleFocused: { borderColor: "#fbdb00" },
   searchHandle: {
     width: 2.5,
     height: 7,
-    backgroundColor: "#999",
+    backgroundColor: "rgba(255,255,255,0.7)",
     borderRadius: 1,
     position: "absolute",
     bottom: 0,
@@ -150,21 +134,21 @@ const styles = StyleSheet.create({
     height: 14,
     borderRadius: 7,
     borderWidth: 2,
-    borderColor: "#999",
+    borderColor: "rgba(255,255,255,0.7)",
   },
   gearInner: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#999",
+    backgroundColor: "rgba(255,255,255,0.7)",
     position: "absolute",
   },
-  gearInnerFocused: { backgroundColor: "#0058a3" },
+  gearInnerFocused: { backgroundColor: "#fbdb00" },
   folderBody: {
     width: 18,
     height: 12,
     borderRadius: 2,
-    backgroundColor: "#999",
+    backgroundColor: "rgba(255,255,255,0.7)",
     position: "absolute",
     bottom: 1,
   },
@@ -173,7 +157,7 @@ const styles = StyleSheet.create({
     height: 4,
     borderTopLeftRadius: 2,
     borderTopRightRadius: 2,
-    backgroundColor: "#999",
+    backgroundColor: "rgba(255,255,255,0.7)",
     position: "absolute",
     top: 2,
     left: 1,

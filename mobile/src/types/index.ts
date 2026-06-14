@@ -24,6 +24,7 @@ export interface SearchResult {
   name: string;
   type_name: string;
   price: number | null;
+  previous_price: number | null;
   tags: string[];
   image_url: string;
   ikea_url: string;

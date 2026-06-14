@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Pressable,
@@ -12,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { apiFetch } from "../../src/api/client";
+import { useToast } from "../../src/components/Toast";
 import type { SearchResponse, SearchResult } from "../../src/types";
 
 function useDebounce(value: string, delay: number) {
@@ -61,7 +61,12 @@ function SearchResultCard({
       </View>
       <View style={styles.priceBlock}>
         {item.price !== null ? (
-          <Text style={styles.price}>{item.price.toFixed(0)} zl</Text>
+          <>
+            <Text style={styles.price}>{item.price.toFixed(0)} zl</Text>
+            {item.previous_price !== null && item.previous_price !== item.price && (
+              <Text style={styles.previousPrice}>{item.previous_price.toFixed(0)} zl</Text>
+            )}
+          </>
         ) : (
           <Text style={styles.noPrice}>--</Text>
         )}
@@ -86,6 +91,7 @@ export default function SearchScreen() {
   const [addedArticles, setAddedArticles] = useState<Set<string>>(new Set());
   const debouncedQuery = useDebounce(query.trim(), 300);
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ["search", debouncedQuery],
@@ -102,16 +108,19 @@ export default function SearchScreen() {
           article_no: item.article_no,
           name: `${item.name} ${item.type_name}`.trim(),
           image_url: item.image_url,
-          ref_price: item.price ?? 0,
+          ref_price: item.previous_price ?? item.price ?? 0,
+          current_price: item.price,
+          tags: item.tags,
           category: "other",
         }),
       }),
     onSuccess: (_, item) => {
       setAddedArticles((prev) => new Set(prev).add(item.article_no));
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast(`Dodano ${item.name}`);
     },
     onError: () => {
-      Alert.alert("Blad", "Nie udalo sie dodac produktu");
+      toast("Nie udalo sie dodac produktu", "error");
     },
   });
 
@@ -198,6 +207,7 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 10, color: "#155724", fontWeight: "600" },
   priceBlock: { alignItems: "flex-end", justifyContent: "space-between" },
   price: { fontSize: 16, fontWeight: "700", color: "#0058a3" },
+  previousPrice: { fontSize: 12, color: "#999", textDecorationLine: "line-through", marginTop: 1 },
   noPrice: { fontSize: 16, color: "#ccc" },
   addButton: {
     backgroundColor: "#0058a3",

@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { apiFetch } from "../../src/api/client";
+import { useToast } from "../../src/components/Toast";
 import type { ListDetailResponse, ListItem } from "../../src/types";
 
 function ListItemCard({
@@ -101,6 +102,7 @@ function RenameModal({
 export default function ListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [renameVisible, setRenameVisible] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -114,6 +116,7 @@ export default function ListDetailScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list", id] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
+      toast("Usunięto z listy");
     },
   });
 
@@ -123,10 +126,11 @@ export default function ListDetailScreen() {
         method: "PATCH",
         body: JSON.stringify({ name }),
       }),
-    onSuccess: () => {
+    onSuccess: (_, name) => {
       queryClient.invalidateQueries({ queryKey: ["list", id] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       setRenameVisible(false);
+      toast(`Zmieniono nazwe na "${name}"`);
     },
   });
 

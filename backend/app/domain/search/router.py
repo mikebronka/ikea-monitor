@@ -41,11 +41,22 @@ async def search_ikea(q: str = Query(..., min_length=2)):
         else:
             article_no = item_no
 
+        prev_price = None
+        previous = sales_price.get("previous", {})
+        if isinstance(previous, dict) and previous.get("wholeNumber"):
+            whole = previous["wholeNumber"]
+            decimals = previous.get("decimals", "")
+            try:
+                prev_price = float(f"{whole}.{decimals}") if decimals else float(whole)
+            except ValueError:
+                pass
+
         results.append({
             "article_no": article_no,
             "name": product.get("name", ""),
             "type_name": product.get("typeName", ""),
             "price": sales_price.get("numeral"),
+            "previous_price": prev_price,
             "tags": sales_price.get("tags", []),
             "image_url": main_image,
             "ikea_url": pip_url,

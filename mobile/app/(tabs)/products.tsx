@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -12,7 +13,9 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 import { apiFetch } from "../../src/api/client";
+import { useToast } from "../../src/components/Toast";
 import type { Product, ProductListResponse, ShoppingList } from "../../src/types";
 
 const CATEGORIES = [
@@ -77,7 +80,9 @@ function ProductCard({
   selected: boolean;
 }) {
   const hasTags = product.latest_tags.length > 0;
-  const totalPrice = product.ref_price * product.quantity;
+  const unitPrice = product.current_price ?? product.ref_price;
+  const totalPrice = unitPrice * product.quantity;
+  const hasDiscount = product.current_price !== null && product.current_price < product.ref_price;
 
   return (
     <Pressable
@@ -121,8 +126,15 @@ function ProductCard({
         )}
       </View>
       <View style={styles.priceEdge}>
-        <Text style={styles.totalPrice}>{totalPrice.toFixed(0)} zl</Text>
-        <Text style={styles.unitPriceSmall}>{product.ref_price.toFixed(0)} zl/szt.</Text>
+        <Text style={[styles.totalPrice, hasDiscount && styles.discountPrice]}>
+          {totalPrice.toFixed(0)} zl
+        </Text>
+        {hasDiscount && (
+          <Text style={styles.refPriceCrossed}>
+            {(product.ref_price * product.quantity).toFixed(0)} zl
+          </Text>
+        )}
+        <Text style={styles.unitPriceSmall}>{unitPrice.toFixed(0)} zl/szt.</Text>
       </View>
     </Pressable>
   );
@@ -132,10 +144,12 @@ function ListPickerModal({
   visible,
   products,
   onClose,
+  onDone,
 }: {
   visible: boolean;
   products: Product[];
   onClose: (done?: boolean) => void;
+  onDone: (listName: string, count: number) => void;
 }) {
   const queryClient = useQueryClient();
   const [newListName, setNewListName] = useState("");
@@ -163,14 +177,17 @@ function ListPickerModal({
     }
     queryClient.invalidateQueries({ queryKey: ["lists"] });
     setAdding(false);
+    const listItem = (lists ?? []).find((l) => l.id === listId);
+    onDone(listItem?.name ?? "listy", products.length);
     onClose(true);
   };
 
   const createAndAdd = async () => {
     setAdding(true);
+    const name = newListName;
     const list = await apiFetch<ShoppingList>("/api/v1/lists/", {
       method: "POST",
-      body: JSON.stringify({ name: newListName }),
+      body: JSON.stringify({ name }),
     });
     for (const product of products) {
       await apiFetch(`/api/v1/lists/${list.id}/products`, {
@@ -187,6 +204,7 @@ function ListPickerModal({
     setNewListName("");
     queryClient.invalidateQueries({ queryKey: ["lists"] });
     setAdding(false);
+    onDone(name, products.length);
     onClose(true);
   };
 
@@ -254,6 +272,7 @@ export default function ProductsScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [listPickerProducts, setListPickerProducts] = useState<Product[]>([]);
 
+  const toast = useToast();
   const selectMode = selectedIds.size > 0;
 
   const { data, isLoading, refetch } = useQuery({
@@ -276,6 +295,28 @@ export default function ProductsScreen() {
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) =>
+      apiFetch(`/api/v1/products/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      toast("Produkt usuniety");
+    },
+    onError: () => toast("Blad usuwania", "error"),
+  });
+
+  const handleDelete = (product: Product) => {
+    Alert.alert("Usunac produkt?", product.name, [
+      { text: "Anuluj", style: "cancel" },
+      {
+        text: "Usun",
+        style: "destructive",
+        onPress: () => deleteMutation.mutate(product.id),
+      },
+    ]);
+  };
 
   const products = (data?.items ?? []).filter((p) =>
     search ? p.name.toLowerCase().includes(search.toLowerCase()) : true
@@ -316,7 +357,10 @@ export default function ProductsScreen() {
   };
 
   const totalItems = products.reduce((sum, p) => sum + p.quantity, 0);
-  const totalCost = products.reduce((sum, p) => sum + p.ref_price * p.quantity, 0);
+  const totalCost = products.reduce(
+    (sum, p) => sum + (p.current_price ?? p.ref_price) * p.quantity,
+    0
+  );
 
   return (
     <View style={styles.container}>
@@ -375,15 +419,27 @@ export default function ProductsScreen() {
         data={products}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <ProductCard
-            product={item}
-            onPress={() => handlePress(item)}
-            onLongPress={() => handleLongPress(item)}
-            onUpdateQty={(qty) => updateMutation.mutate({ id: item.id, quantity: qty })}
-            onAddToList={() => setListPickerProducts([item])}
-            selectMode={selectMode}
-            selected={selectedIds.has(item.id)}
-          />
+          <Swipeable
+            renderRightActions={() => (
+              <Pressable
+                style={styles.deleteBtn}
+                onPress={() => handleDelete(item)}
+              >
+                <Text style={styles.deleteBtnText}>Usun</Text>
+              </Pressable>
+            )}
+            overshootRight={false}
+          >
+            <ProductCard
+              product={item}
+              onPress={() => handlePress(item)}
+              onLongPress={() => handleLongPress(item)}
+              onUpdateQty={(qty) => updateMutation.mutate({ id: item.id, quantity: qty })}
+              onAddToList={() => setListPickerProducts([item])}
+              selectMode={selectMode}
+              selected={selectedIds.has(item.id)}
+            />
+          </Swipeable>
         )}
         refreshing={isLoading}
         onRefresh={refetch}
@@ -402,6 +458,9 @@ export default function ProductsScreen() {
           setListPickerProducts([]);
           if (done) clearSelection();
         }}
+        onDone={(name, count) =>
+          toast(`Dodano ${count} prod. do "${name}"`)
+        }
       />
     </View>
   );
@@ -517,8 +576,20 @@ const styles = StyleSheet.create({
   addToListText: { fontSize: 11, fontWeight: "600", color: "#0058a3" },
   priceEdge: { alignItems: "flex-end", justifyContent: "center", minWidth: 70 },
   totalPrice: { fontSize: 16, fontWeight: "700", color: "#0058a3" },
+  discountPrice: { color: "#27ae60" },
+  refPriceCrossed: { fontSize: 12, color: "#999", textDecorationLine: "line-through" },
   unitPriceSmall: { fontSize: 11, color: "#999", marginTop: 1 },
   emptyText: { textAlign: "center", color: "#999", marginTop: 40 },
+  deleteBtn: {
+    backgroundColor: "#e74c3c",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    marginBottom: 10,
+    borderRadius: 10,
+    marginLeft: 4,
+  },
+  deleteBtnText: { color: "#fff", fontSize: 13, fontWeight: "700" },
 
   modalOverlay: {
     flex: 1,

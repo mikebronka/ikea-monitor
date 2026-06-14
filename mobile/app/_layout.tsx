@@ -3,8 +3,10 @@ import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Platform } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Platform, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import { ToastProvider } from "../src/components/Toast";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,8 +25,21 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <RootContent />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+function RootContent() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
+        <ToastProvider>
         <StatusBar style="light" />
         <Stack
           screenOptions={{
@@ -43,7 +58,19 @@ export default function RootLayout() {
             options={{ title: "Lista", headerBackTitle: "Wstecz" }}
           />
         </Stack>
+        </ToastProvider>
       </QueryClientProvider>
-    </SafeAreaProvider>
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: Math.max(insets.bottom, 8),
+          backgroundColor: "#000",
+        }}
+        pointerEvents="none"
+      />
+    </View>
   );
 }

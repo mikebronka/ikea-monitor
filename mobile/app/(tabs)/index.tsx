@@ -27,7 +27,14 @@ export default function DashboardScreen() {
 
   const products = data?.items ?? [];
   const totalRef = products.reduce((sum, p) => sum + p.ref_price * p.quantity, 0);
-  const withTags = products.filter((p) => p.latest_tags.length > 0);
+  const totalCurrent = products.reduce(
+    (sum, p) => sum + (p.current_price ?? p.ref_price) * p.quantity,
+    0
+  );
+  const changed = products.filter(
+    (p) => p.current_price !== null && p.current_price !== p.ref_price
+  );
+  const savings = totalRef - totalCurrent;
 
   return (
     <ScrollView style={styles.container}>
@@ -43,29 +50,50 @@ export default function DashboardScreen() {
             <Text style={styles.statLabel}>Budżet ref.</Text>
           </View>
           <View style={styles.stat}>
-            <Text style={styles.statValue}>{withTags.length}</Text>
-            <Text style={styles.statLabel}>W promocji</Text>
+            <Text style={styles.statValue}>{totalCurrent.toFixed(0)} zł</Text>
+            <Text style={styles.statLabel}>Aktualna</Text>
           </View>
         </View>
+        {savings !== 0 && (
+          <View style={styles.savingsRow}>
+            <Text style={[styles.savingsText, savings > 0 ? styles.savingsPositive : styles.savingsNegative]}>
+              {savings > 0 ? "Oszczędzasz" : "Drożej o"} {Math.abs(savings).toFixed(0)} zł
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Produkty w promocji</Text>
-        {withTags.length === 0 ? (
-          <Text style={styles.emptyText}>Brak aktywnych promocji</Text>
+        <Text style={styles.cardTitle}>Zmienione ceny ({changed.length})</Text>
+        {changed.length === 0 ? (
+          <Text style={styles.emptyText}>Brak zmian cen</Text>
         ) : (
-          withTags.map((p) => (
-            <View key={p.id} style={styles.promoItem}>
-              <Text style={styles.promoName}>{p.name}</Text>
-              <View style={styles.tagRow}>
-                {p.latest_tags.map((tag) => (
-                  <View key={tag} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag.replace(/_/g, " ")}</Text>
+          changed.map((p) => {
+            const diff = (p.current_price! - p.ref_price) * p.quantity;
+            return (
+              <View key={p.id} style={styles.promoItem}>
+                <View style={styles.promoHeader}>
+                  <Text style={styles.promoName} numberOfLines={1}>{p.name}</Text>
+                  <Text style={[styles.diffText, diff < 0 ? styles.savingsPositive : styles.savingsNegative]}>
+                    {diff > 0 ? "+" : ""}{diff.toFixed(0)} zł
+                  </Text>
+                </View>
+                <Text style={styles.priceDetail}>
+                  {p.ref_price.toFixed(0)} → {p.current_price!.toFixed(0)} zł
+                  {p.quantity > 1 ? ` × ${p.quantity} szt.` : ""}
+                </Text>
+                {p.latest_tags.length > 0 && (
+                  <View style={styles.tagRow}>
+                    {p.latest_tags.map((tag) => (
+                      <View key={tag} style={styles.tag}>
+                        <Text style={styles.tagText}>{tag.replace(/_/g, " ")}</Text>
+                      </View>
+                    ))}
                   </View>
-                ))}
+                )}
               </View>
-            </View>
-          ))
+            );
+          })
         )}
       </View>
     </ScrollView>
@@ -93,9 +121,16 @@ const styles = StyleSheet.create({
   stat: { alignItems: "center" },
   statValue: { fontSize: 24, fontWeight: "700", color: "#0058a3" },
   statLabel: { fontSize: 12, color: "#888", marginTop: 4 },
+  savingsRow: { alignItems: "center", marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#eee" },
+  savingsText: { fontSize: 16, fontWeight: "700" },
+  savingsPositive: { color: "#27ae60" },
+  savingsNegative: { color: "#c0392b" },
   emptyText: { color: "#999", fontStyle: "italic" },
   promoItem: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  promoName: { fontSize: 14, fontWeight: "500", color: "#333" },
+  promoHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  promoName: { fontSize: 14, fontWeight: "500", color: "#333", flex: 1, marginRight: 8 },
+  diffText: { fontSize: 14, fontWeight: "700" },
+  priceDetail: { fontSize: 12, color: "#888", marginTop: 2 },
   tagRow: { flexDirection: "row", marginTop: 4, gap: 6 },
   tag: { backgroundColor: "#d4edda", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   tagText: { fontSize: 11, color: "#155724", fontWeight: "600" },

@@ -8,6 +8,8 @@ class ProductCreate(BaseModel):
     name: str
     image_url: str | None = None
     ref_price: float
+    current_price: float | None = None
+    tags: list[str] = []
     priority: str = "normal"
     category: str
     quantity: int = 1
